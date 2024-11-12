@@ -16,7 +16,7 @@ class RunJob extends Command
         $class = $this->argument('class');
         $method = $this->argument('method');
         $parameters = json_decode($this->argument('parameters'), true) ?? [];
-        $retries = 3; // You can make this configurable if needed
+        $retries = 3;
 
         try {
             JobRunner::run($class, $method, $parameters, $retries);
