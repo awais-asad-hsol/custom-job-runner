@@ -1,0 +1,1 @@
+[2024-11-12 14:39:51] local.ERROR: Job permanently failed {"class":"App\\Jobs\\ApprovedJob2","method":"execute","parameters":["success","test parameter"],"status":"permanent failure","attempts":3,"error":"Target class [App\\Jobs\\ApprovedJob2] does not exist."} 

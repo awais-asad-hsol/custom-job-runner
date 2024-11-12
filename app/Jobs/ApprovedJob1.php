@@ -10,7 +10,7 @@ class ApprovedJob1
     public function execute($param1, $param2)
     {
         // Simulate some processing
-        Log::info("Processing job with parameters job file: $param1, $param2");
+        Log::info("Processing job with parameters ApprovedJob1 file: $param1, $param2");
 
         // Simulate an error for testing retries
         if ($param1 === 'fail') {
