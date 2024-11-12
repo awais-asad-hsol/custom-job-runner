@@ -25,6 +25,9 @@
             "Database\\Seeders\\": "database/seeders/"
         }
     },
+    "files": [
+        "app//Helpers/JobRunnerHelper.php"
+    ],
     "autoload-dev": {
         "psr-4": {
             "Tests\\": "tests/"
