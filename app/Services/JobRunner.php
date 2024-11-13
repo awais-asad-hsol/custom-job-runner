@@ -7,6 +7,29 @@ use Illuminate\Support\Facades\Log;
 
 class JobRunner
 {
+    protected static $jobs = [];
+
+    public static function addJob($class, $method, $parameters = [], $priority = 1, $retries = 3, $delay = 1)
+    {
+        self::$jobs[] = [
+            'class' => $class,
+            'method' => $method,
+            'parameters' => $parameters,
+            'priority' => $priority,
+            'retries' => $retries,
+            'delay' => $delay,
+        ];
+    }
+
+    public static function runJobs()
+    {
+        // Sort jobs by priority (lowest number is highest priority)
+        usort(self::$jobs, fn($a, $b) => $a['priority'] <=> $b['priority']);
+
+        foreach (self::$jobs as $job) {
+            self::run($job['class'], $job['method'], $job['parameters'], $job['retries'], $job['delay']);
+        }
+    }
     public static function run($class, $method, $parameters = [], $retries = 3)
     {
         // Log job started

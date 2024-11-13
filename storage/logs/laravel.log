@@ -1,6 +1,6 @@
-[2024-11-13 05:57:17] local.INFO: Starting runBackgroundJob {"class":"App\\Jobs\\ApprovedJob1","method":"execute","parameters":["success","test parameter"],"retries":3} 
-[2024-11-13 05:57:17] local.INFO: Constructed command for background job {"command":"php /Users/heuristicsol10/Desktop/custom-job-runner artisan job:run 'App\\Jobs\\ApprovedJob1' 'execute' '[\"success\",\"test parameter\"]' > /dev/null 2>&1 &","os":"Darwin"} 
-[2024-11-13 05:57:17] local.INFO: Executed command on Unix-based system  
-[2024-11-13 06:03:23] local.INFO: Job started {"class":"App\\Jobs\\ApprovedJob1","method":"execute","parameters":["success","test parameter"],"status":"running","timestamp":"2024-11-13 06:03:23"} 
-[2024-11-13 06:03:23] local.INFO: Processing job with parameters ApprovedJob1 file: success, test parameter  
-[2024-11-13 06:03:23] local.INFO: Job executed successfully {"class":"App\\Jobs\\ApprovedJob1","method":"execute","parameters":["success","test parameter"],"status":"completed","timestamp":"2024-11-13 06:03:23"} 
+[2024-11-13 06:17:17] local.INFO: Job started {"class":"App\\Jobs\\ApprovedJob2","method":"execute","parameters":["param1","param2"],"status":"running","timestamp":"2024-11-13 06:17:17"} 
+[2024-11-13 06:17:17] local.INFO: Processing job with parameters ApprovedJob2 file: param1, param2  
+[2024-11-13 06:17:17] local.INFO: Job executed successfully {"class":"App\\Jobs\\ApprovedJob2","method":"execute","parameters":["param1","param2"],"status":"completed","timestamp":"2024-11-13 06:17:17"} 
+[2024-11-13 06:17:17] local.INFO: Job started {"class":"App\\Jobs\\ApprovedJob1","method":"execute","parameters":["param1","param2"],"status":"running","timestamp":"2024-11-13 06:17:17"} 
+[2024-11-13 06:17:17] local.INFO: Processing job with parameters ApprovedJob1 file: param1, param2  
+[2024-11-13 06:17:17] local.INFO: Job executed successfully {"class":"App\\Jobs\\ApprovedJob1","method":"execute","parameters":["param1","param2"],"status":"completed","timestamp":"2024-11-13 06:17:17"} 

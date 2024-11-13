@@ -3,43 +3,76 @@
 use Illuminate\Support\Facades\Log;
 
 if (!function_exists('runBackgroundJob')) {
-    function runBackgroundJob($class, $method, $parameters = [], $retries = 3)
+    // Static queue for prioritized job execution
+    function runBackgroundJob($class, $method, $parameters = [], $retries = 3, $delay = 1, $priority = 1)
     {
-        // Log start of helper function
-        Log::info("Starting runBackgroundJob", [
+        static $jobQueue = []; // Static queue to hold jobs with priority
+
+        // Add job to queue with priority
+        $jobQueue[] = [
             'class' => $class,
             'method' => $method,
             'parameters' => $parameters,
             'retries' => $retries,
-        ]);
+            'delay' => $delay,
+            'priority' => $priority,
+        ];
 
-        $serializedParams = escapeshellarg(json_encode($parameters));
+        // Sort the queue by priority (lower number is higher priority)
+        usort($jobQueue, fn($a, $b) => $a['priority'] <=> $b['priority']);
+
+        // Execute each job in order of priority
+        foreach ($jobQueue as $job) {
+            executeJobWithRetry($job);
+        }
+    }
+
+    function executeJobWithRetry($job)
+    {
+        Log::info("Starting runBackgroundJob with retry", $job);
+
+        $serializedParams = escapeshellarg(json_encode($job['parameters']));
         $command = sprintf(
             'php %s artisan job:run %s %s %s > /dev/null 2>&1 &',
             base_path(),
-            escapeshellarg($class),
-            escapeshellarg($method),
+            escapeshellarg($job['class']),
+            escapeshellarg($job['method']),
             $serializedParams
         );
 
-        Log::info("Constructed command for background job", [
-            'command' => $command,
-            'os' => PHP_OS
-        ]);
+        $attempt = 0;
+        while ($attempt < $job['retries']) {
+            try {
+                Log::info("Executing command for background job", ['command' => $command]);
 
-        try {
-            if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
-                pclose(popen("start /B {$command}", "r"));
-                Log::info("Executed command on Windows");
-            } else {
-                exec($command);
-                Log::info("Executed command on Unix-based system");
+                if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
+                    pclose(popen("start /B {$command}", "r"));
+                } else {
+                    exec($command);
+                }
+
+                Log::info("Command executed successfully on attempt #$attempt", [
+                    'class' => $job['class'],
+                    'method' => $job['method'],
+                    'parameters' => $job['parameters'],
+                ]);
+                break; // Exit loop on success
+
+            } catch (Exception $e) {
+                $attempt++;
+                if ($attempt >= $job['retries']) {
+                    Log::channel('background_jobs_errors')->error("Job permanently failed", [
+                        'class' => $job['class'],
+                        'method' => $job['method'],
+                        'parameters' => $job['parameters'],
+                        'status' => 'permanent failure',
+                        'attempts' => $attempt,
+                        'error' => $e->getMessage(),
+                    ]);
+                    throw $e;
+                }
+                sleep($job['delay']); // Delay before next retry
             }
-        } catch (Exception $e) {
-            Log::error("Failed to execute background job command", [
-                'error' => $e->getMessage(),
-                'command' => $command
-            ]);
         }
     }
 }
