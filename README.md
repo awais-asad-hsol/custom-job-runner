@@ -41,17 +41,21 @@ You can use the background job runner in two ways: with a helper function or dir
 
 1. **Using the Global Helper Function**
 To run a job asynchronously using the runBackgroundJob helper function, simply call the function from a route or controller:
+
 Route::get('/run-job-helper-function', [JobController::class, 'runJobUsingHelperFunction']);
 
-2. **Using the Service Directly**
+3. **Using the Service Directly**
 To execute a job synchronously, you can directly call the JobRunner service in your controller:
+
 Route::get('/run-job-service', [JobController::class, 'runJobDirectly']);
 
 ## Job Priorities
 To configure job priorities, you can use the following structure:
 
 Add jobs to a queue with different priorities:
+
 JobRunner::addJob('App\\Jobs\\ApprovedJob1', 'execute', ['param1', 'param2'], 1, 3, 2); // Priority 1 (high)
+
 JobRunner::addJob('App\\Jobs\\ApprovedJob2', 'execute', ['param1', 'param2'], 2, 3, 2); // Priority 2 (low)
 
 ## Security
@@ -94,6 +98,7 @@ Example log entries:
 Test the job runner by using the controller methods:
 
 Visit /run-job-helper-function to test the asynchronous job dispatch using the helper function.
+
 Visit /run-job-service to test the synchronous job execution directly via the JobRunner service.
 
 ### Conclusion
