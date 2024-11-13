@@ -1,66 +1,100 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Laravel Background Job Runner
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+## Overview
 
-## About Laravel
+This system is designed to execute jobs in the background in a Laravel environment. It provides flexibility to configure retry attempts, delays between retries, job priorities, and logging. The job runner supports both synchronous and asynchronous execution through a helper function and service.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## Features
+- **Job Retry Logic**: Configure retry attempts and delays between retries.
+- **Job Prioritization**: Define job priorities to ensure higher-priority jobs are executed first.
+- **Security**: Ensure only approved job classes and methods are executed.
+- **Logging**: Detailed logs for job execution, including retries, successes, and errors.
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## Setup Instructions
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+### 1 Install and Configure the System
 
-## Learning Laravel
+1. **Add the Helper Function to `composer.json`**:
+   Ensure the helper file is autoloaded by adding it to the `autoload` section in `composer.json`:
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+   ```json
+   "autoload": {
+       "files": [
+           "app/Helpers/JobRunnerHelper.php"
+       ]
+   }
+2. **Run Composer Autoload: Regenerate the autoload files**:
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+composer dump-autoload
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+3. **Create the Required Log Channel: Configure a log channel in config/logging.php for error handling**:
 
-## Laravel Sponsors
+'background_jobs_errors' => [
+    'driver' => 'single',
+    'path' => storage_path('logs/background_jobs_errors.log'),
+    'level' => 'error',
+],
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+### 2 Using the Background Job Runner
 
-### Premium Partners
+You can use the background job runner in two ways: with a helper function or directly via the service.
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[WebReinvent](https://webreinvent.com/)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Jump24](https://jump24.co.uk)**
-- **[Redberry](https://redberry.international/laravel/)**
-- **[Active Logic](https://activelogic.com)**
-- **[byte5](https://byte5.de)**
-- **[OP.GG](https://op.gg)**
+1. **Using the Global Helper Function**
+To run a job asynchronously using the runBackgroundJob helper function, simply call the function from a route or controller:
+Route::get('/run-job-helper-function', [JobController::class, 'runJobUsingHelperFunction']);
 
-## Contributing
+2. **Using the Service Directly**
+To execute a job synchronously, you can directly call the JobRunner service in your controller:
+Route::get('/run-job-service', [JobController::class, 'runJobDirectly']);
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+## Job Priorities
+To configure job priorities, you can use the following structure:
 
-## Code of Conduct
+Add jobs to a queue with different priorities:
+JobRunner::addJob('App\\Jobs\\ApprovedJob1', 'execute', ['param1', 'param2'], 1, 3, 2); // Priority 1 (high)
+JobRunner::addJob('App\\Jobs\\ApprovedJob2', 'execute', ['param1', 'param2'], 2, 3, 2); // Priority 2 (low)
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+## Security
+For security, the JobRunner service checks if the class is in the approved list. If an unauthorized class is attempted, it throws an exception:
 
-## Security Vulnerabilities
+$approvedClasses = [
+    'App\\Jobs\\ApprovedJob1',
+    'App\\Jobs\\ApprovedJob2',
+];
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+## Sample Log Files
+Log entries are recorded for each job execution. The following log files are generated:
 
-## License
+laravel log: Logs general job activity such as job starts, completions, and errors.
+background_jobs_errors.log: Logs errors, including retries, permanent failures, and exceptions during job execution.
+Example log entries:
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+[2024-11-15 14:35:00] local.INFO: Job started  
+  class: App\\Jobs\\ApprovedJob1  
+  method: execute  
+  parameters: ['success', 'test parameter']  
+  status: running  
+
+[2024-11-15 14:35:02] local.INFO: Job executed successfully  
+  class: App\\Jobs\\ApprovedJob1  
+  method: execute  
+  parameters: ['success', 'test parameter']  
+  status: completed  
+
+[2024-11-15 14:35:05] local.ERROR: Job permanently failed  
+  class: App\\Jobs\\ApprovedJob2  
+  method: execute  
+  parameters: ['fail', 'test parameter']  
+  status: permanent failure  
+  attempts: 3  
+  error: Simulated job failure for testing retries
+
+
+## Testing
+Test the job runner by using the controller methods:
+
+Visit /run-job-helper-function to test the asynchronous job dispatch using the helper function.
+Visit /run-job-service to test the synchronous job execution directly via the JobRunner service.
+
+### Conclusion
+This setup enables efficient background job handling with configurable retry attempts, delays, and priorities. You can execute jobs in the background or synchronously while tracking the process with detailed logging.
